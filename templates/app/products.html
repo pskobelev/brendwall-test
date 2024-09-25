@@ -1,0 +1,116 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block content %}
+    <h1>Products List</h1>
+
+    <form id="productForm">
+        {% csrf_token %}
+        <label for="name"></label>
+        <input type="text" id="name" name="name" required
+               placeholder="Название товара"><br><br>
+        <label for="description"></label>
+        <textarea id="description" name="description" required
+                  placeholder="Описание товара"
+                  rows="5"></textarea><br>
+        <label for="price"></label>
+        <input type="number" id="price" name="price" step="0.01" min="0"
+               required placeholder="Цена">
+        <button type="submit" class="btn btn-primary">Отправить</button>
+    </form>
+
+
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        function loadProducts() {
+            fetch('http://localhost:8000/api/products/')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector('#productTable tbody');
+                    tbody.innerHTML = '';  // Очищаем таблицу перед заполнением
+
+                    data.forEach(product => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+{#                    <td>${product.id}</td>#}
+                    <td>${product.name}</td>
+                    <td>${product.description}</td>
+                    <td>${product.price}</td>
+                `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке списка продуктов:', error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProducts);
+
+        document.getElementById('productForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const formData = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                price: document.getElementById('price').value,
+            };
+
+            fetch('http://localhost:8000/api/products/new/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка сети');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Продукт успешно добавлен:', data);
+                    document.getElementById('productForm').reset()
+                    loadProducts();
+                })
+                .catch(error => {
+                    console.error('Ошибка при отправке:', error);
+                });
+        });
+    </script>
+    
+    <h2>Список продуктов</h2>
+    <table class="table table-hover" id="productTable">
+        <thead class="thead-dark">
+        <tr>
+            {#            <th>ID</th>#}
+            <th>Название</th>
+            <th>Описание</th>
+            <th>Цена</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+{% endblock %}
+
+
