@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "brendwall-django"
+version = "0.1.0"
+description = ""
+authors = ["Pavel Skobelev <pskobelev@me.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^5.1.1"
+sqlparse = "^0.5.1"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.11.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
